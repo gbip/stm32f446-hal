@@ -20,6 +20,7 @@ keywords = ["arm", "cortex-m", "stm32", "hal", "embedded-hal"]
 categories = ["embedded", "hardware-support", "no-std"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/gbip/stm32f446-hal"
+
 [dependencies.cast]
 version = "0.2.2"
 default-features = false
@@ -33,11 +34,8 @@ version = "0.2.1"
 [dependencies.nb]
 version = "0.1.1"
 
-#[dependencies.stm32f446]
-#version = "0.1.0"
-
 [dependencies.stm32f4]
-path = "/home/paul/repos/stm32-rs/stm32f4"
+git = "https://github.com/adamgreig/stm32-rs/stm32f4"
 features = ["stm32f446"]
 
 [dependencies.void]
