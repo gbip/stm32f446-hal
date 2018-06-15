@@ -5,13 +5,12 @@ use core::marker::PhantomData;
 
 use hal::serial;
 use nb;
-use stm32f446::{USART1, USART2, USART3};
+use stm32f446::{USART1, USART2, USART3, UART4, UART5, USART6};
 
-use gpio::gpioa::{PA10, PA2, PA3, PA9};
-use gpio::gpiob::{PB10, PB11, PB6, PB7};
-use gpio::gpioc::{PC10, PC11, PC4, PC5};
-use gpio::gpiod::{PD5, PD6, PD8, PD9};
-use gpio::gpioe::{PE0, PE1, PE15};
+use gpio::gpioa::{PA0, PA1, PA10, PA2, PA3, PA9};
+use gpio::gpiob::{PB10, PB6, PB7};
+use gpio::gpioc::{PC10, PC11, PC12, PC5, PC6, PC7};
+use gpio::gpiod::{PD2};
 use gpio::AF7;
 use rcc::{APB2, Clocks};
 use time::Bps;
@@ -45,34 +44,33 @@ pub unsafe trait TxPin<USART> {}
 /// RX pin - DO NOT IMPLEMENT THIS TRAIT
 pub unsafe trait RxPin<USART> {}
 
-unsafe impl TxPin<USART1> for PA9<AF7> {}
-unsafe impl TxPin<USART1> for PB6<AF7> {}
-unsafe impl TxPin<USART1> for PC4<AF7> {}
-unsafe impl TxPin<USART1> for PE0<AF7> {}
+unsafe impl TxPin<USART1> for PA9<AF7> {} 
+unsafe impl TxPin<USART1> for PB6<AF7> {} 
 
-unsafe impl RxPin<USART1> for PA10<AF7> {}
-unsafe impl RxPin<USART1> for PB7<AF7> {}
-unsafe impl RxPin<USART1> for PC5<AF7> {}
-unsafe impl RxPin<USART1> for PE1<AF7> {}
+unsafe impl RxPin<USART1> for PA10<AF7> {} 
+unsafe impl RxPin<USART1> for PB7<AF7> {} 
 
-unsafe impl TxPin<USART2> for PA2<AF7> {}
-// unsafe impl TxPin<USART2> for PA14<AF7> {}
-// unsafe impl TxPin<USART2> for PB3<AF7> {}
-unsafe impl TxPin<USART2> for PD5<AF7> {}
+unsafe impl TxPin<USART2> for PA2<AF7> {} 
 
-unsafe impl RxPin<USART2> for PA3<AF7> {}
-// unsafe impl RxPin<USART2> for PA15<AF7> {}
-// unsafe impl RxPin<USART2> for PB4<AF7> {}
-unsafe impl RxPin<USART2> for PD6<AF7> {}
+unsafe impl RxPin<USART2> for PA3<AF7> {} 
 
-unsafe impl TxPin<USART3> for PB10<AF7> {}
-unsafe impl TxPin<USART3> for PC10<AF7> {}
-unsafe impl TxPin<USART3> for PD8<AF7> {}
+unsafe impl TxPin<USART3> for PB10<AF7> {} 
+unsafe impl TxPin<USART3> for PC10<AF7> {} 
 
-unsafe impl RxPin<USART3> for PB11<AF7> {}
-unsafe impl RxPin<USART3> for PC11<AF7> {}
-unsafe impl RxPin<USART3> for PD9<AF7> {}
-unsafe impl RxPin<USART3> for PE15<AF7> {}
+unsafe impl RxPin<USART3> for PC5<AF7> {} 
+unsafe impl RxPin<USART3> for PC11<AF7> {} 
+
+unsafe impl TxPin<UART4> for PA0<AF7> {} 
+
+unsafe impl RxPin<UART4> for PA1<AF7> {} 
+
+unsafe impl TxPin<UART5> for PC12<AF7> {} 
+
+unsafe impl RxPin<UART5> for PD2<AF7> {} 
+
+unsafe impl TxPin<USART6> for PC6<AF7> {} 
+
+unsafe impl RxPin<USART6> for PC7<AF7> {} 
 
 /// Serial abstraction
 pub struct Serial<USART, PINS> {
