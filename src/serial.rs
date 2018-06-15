@@ -12,7 +12,7 @@ use gpio::gpiob::{PB10, PB6, PB7};
 use gpio::gpioc::{PC10, PC11, PC12, PC5, PC6, PC7};
 use gpio::gpiod::{PD2};
 use gpio::AF7;
-use rcc::{APB2, Clocks};
+use rcc::{APB1, APB2, Clocks};
 use time::Bps;
 
 /// Interrupt event
@@ -236,6 +236,7 @@ macro_rules! hal {
 
 hal! {
     USART1: (usart1, APB2, usart1en, usart1rst, pclk2),
-    USART2: (usart2, APB2, usart1en, usart1rst, pclk1),
-    //USART3: (usart3, APB1, usart3en, usart3rst, pclk1),
+    USART2: (usart2, APB1, usart2en, uart2rst, pclk1),
+    USART3: (usart3, APB1, usart3en, uart3rst, pclk1),
+    USART6: (usart6, APB2, usart6en, usart6rst, pclk1),
 }
