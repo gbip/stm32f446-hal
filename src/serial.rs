@@ -236,6 +236,6 @@ macro_rules! hal {
 
 hal! {
     USART1: (usart1, APB2, usart1en, usart1rst, pclk2),
-    //USART2: (usart2, APB1, usart2en, usart2rst, pclk1),
+    USART2: (usart2, APB2, usart1en, usart1rst, pclk1),
     //USART3: (usart3, APB1, usart3en, usart3rst, pclk1),
 }
