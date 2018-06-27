@@ -275,7 +275,7 @@ impl CFGR {
             while rcc.cr.read().pllrdy().bit_is_clear() {}
 
             // SW: PLL selected as system clock
-            /*rcc.cfgr.modify(|_, w| unsafe {
+            rcc.cfgr.modify(|_, w| unsafe {
                 w
                     // APB high-speed prescaler (APB2)
                     .ppre2()
@@ -290,12 +290,12 @@ impl CFGR {
                     .sw0()
                     // PLL selected as system clock
                     .bits(0b10)
-            });*/
+            });
         } else {
             // use HSI as source
 
             // SW: HSI selected as system clock
-            /*rcc.cfgr.write(|w| unsafe {
+            rcc.cfgr.write(|w| unsafe {
                 w.ppre2()
                     .bits(ppre2_bits)
                     .ppre1()
@@ -304,7 +304,7 @@ impl CFGR {
                     .bits(hpre_bits)
                     .sw0()
                     .set_bit(0b00)
-            });*/
+            });
         }
 
         Clocks {
