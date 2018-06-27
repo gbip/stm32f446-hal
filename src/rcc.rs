@@ -287,7 +287,7 @@ impl CFGR {
                     .hpre()
                     .bits(hpre_bits)
                     // System clock switch
-                    .sw0()
+                    .sw()
                     // PLL selected as system clock
                     .bits(0b10)
             });
@@ -302,8 +302,8 @@ impl CFGR {
                     .bits(ppre1_bits)
                     .hpre()
                     .bits(hpre_bits)
-                    .sw0()
-                    .set_bit(0b00)
+                    .sw()
+                    .bits(0b00)
             });
         }
 
