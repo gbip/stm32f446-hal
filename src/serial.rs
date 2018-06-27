@@ -114,10 +114,14 @@ macro_rules! hal {
                     // disable hardware flow control
                     // TODO enable DMA
                     usart.cr3.write(|w| w.rtse().clear_bit().ctse().clear_bit());
-
+                    
+                    // Set the M bit to program the baudrate
                     let brr = clocks.$pclkX().0 / baud_rate.0;
                     assert!(brr >= 16, "impossible baud rate");
                     usart.brr.write(|w| unsafe { w.bits(brr) });
+
+                    // Configure the number of stop bits
+                    usart.cr2.write(|w| unsafe {w.bits(0b00)});
 
                     // UE: enable USART
                     // RE: enable receiver
