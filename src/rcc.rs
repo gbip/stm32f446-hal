@@ -64,6 +64,21 @@ impl AHB1 {
         // NOTE(unsafe) this proxy grants exclusive access to this register
         unsafe { &(*RCC::ptr()).ahb1rstr }
     }
+
+    /// Enable all the gpio blocks by setting ahb1.gpioXen bit to 1.
+    /// Currently enabling only certain gpio bloc is not supported.
+    pub fn enable_all_gpio(&mut self) {
+        self.enr().modify(|_, w| w.
+                          gpioaen().set_bit().
+                          gpioben().set_bit().
+                          gpioben().set_bit().
+                          gpiocen().set_bit().
+                          gpioden().set_bit().
+                          gpioeen().set_bit().
+                          gpiofen().set_bit().
+                          gpiogen().set_bit().
+                          gpiohen().set_bit());
+    }
 }
 
 /// AMBA High-performance Bus 2 (AHB2) registers
@@ -157,6 +172,7 @@ impl CFGR {
         self.hclk = Some(freq.into().0);
         self
     }
+
 
     /// Sets a frequency for the APB1 bus
     pub fn pclk1<F>(mut self, freq: F) -> Self
