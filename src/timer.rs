@@ -1,12 +1,10 @@
 //! Timers
 
-use void::Void;
 use cast::{u16, u32};
 use hal::timer::{CountDown, Periodic};
 use nb;
-use stm32f446::{TIM2, TIM3, TIM4, TIM5,
-                TIM6, TIM7, TIM9, TIM10,
-                TIM11, TIM12, TIM13, TIM14};
+use stm32f446::{TIM10, TIM11, TIM12, TIM13, TIM14, TIM2, TIM3, TIM4, TIM5, TIM6, TIM7, TIM9};
+use void::Void;
 
 use rcc::{APB1, APB2, Clocks};
 use time::Hertz;

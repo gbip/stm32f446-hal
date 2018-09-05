@@ -4,7 +4,7 @@ use core::marker::PhantomData;
 use stm32f446::{SPI1, SPI2, SPI3};
 
 use gpio::gpioa::PA4;
-use gpio::gpiob::{PB5, PB9, PB10, PB12, PB13, PB14, PB15};
+use gpio::gpiob::{PB10, PB12, PB13, PB14, PB15, PB5, PB9};
 use gpio::gpioc::{PC2, PC3, PC6, PC7};
 use gpio::{AF5, AF6};
 use rcc::{APB1, APB2, Clocks};
@@ -76,7 +76,6 @@ unsafe impl I2sDmaStream<SPI1, C3, DmaRx> for dma2::S0 {}
 unsafe impl I2sDmaStream<SPI1, C3, DmaRx> for dma2::S2 {}
 unsafe impl I2sDmaStream<SPI1, C3, DmaTx> for dma2::S3 {}
 unsafe impl I2sDmaStream<SPI1, C3, DmaTx> for dma2::S5 {}
-
 
 /// Slave role (doesn't provide clock)
 pub struct SlaveRole {}
@@ -168,7 +167,6 @@ macro_rules! hal {
                     // Reset peripheral
                     apb.rstr().modify(|_, w| w.$spiXrst().set_bit());
                     apb.rstr().modify(|_, w| w.$spiXrst().clear_bit());
-                    
                     I2s { spi, sd, ck, ws }
                 }
 

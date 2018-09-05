@@ -1,18 +1,17 @@
 //! Inter-Integrated Circuit (I2C) bus
 
-use cast::{u8, u16, u32};
+use cast::{u16, u32, u8};
 use stm32f446::{I2C1, I2C2, I2C3};
 
 use gpio::gpioa::PA8;
-use gpio::gpiob::{PB6, PB7, PB8, PB9, PB10, PB11};
-use gpio::gpioc::{PC9};
+use gpio::gpiob::{PB10, PB11, PB6, PB7, PB8, PB9};
+use gpio::gpioc::PC9;
 use gpio::gpiof::{PF0, PF1};
 use gpio::gpioh::{PH4, PH5, PH7, PH8};
 use gpio::AF4;
 use hal::blocking::i2c::{Read, Write};
 use rcc::{APB1, Clocks};
 use time::{KiloHertz, MegaHertz};
-
 
 /// I2C error
 #[derive(Debug)]
@@ -31,7 +30,8 @@ pub enum Error {
     Timeout,
     /// SMBUS mode only
     Alert,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits
@@ -95,7 +95,7 @@ macro_rules! busy_wait {
                 // try again
             }
         }
-    }
+    };
 }
 
 macro_rules! hal {
@@ -213,7 +213,6 @@ macro_rules! hal {
                     busy_wait!(self.i2c, addr);
                     // To clear addr
                     self.i2c.sr2.read();
-                    
                     for byte in bytes {
                         // Wait until we are allowed to send data (START has been ACKed or last byte
                         // when through)

@@ -125,6 +125,7 @@ macro_rules! gpio {
                 type Parts = Parts;
 
                 fn split(self, ahb: &mut AHB1) -> Parts {
+
                     ahb.enr().modify(|_, w| w.$iopxenr().set_bit());
                     ahb.rstr().modify(|_, w| w.$iopxrst().set_bit());
                     ahb.rstr().modify(|_, w| w.$iopxrst().clear_bit());
@@ -296,14 +297,24 @@ macro_rules! gpio {
                         self,
                         moder: &mut MODER,
                         afr: &mut $AFR,
+                        otyper : &mut OTYPER,
+                        pupdr : &mut PUPDR,
                     ) -> $PXi<AF7> {
-                        let offset = 2 * $i;
+
+
+                        // Push-Pull mode
+                        otyper.otyper().modify(|r,w| unsafe {
+                            w.bits(r.bits() & (1 << $i))
+                        });
+
+                        // Pull-up
+                        pupdr.pupdr().modify(|r,w| unsafe {
+                            w.bits(r.bits() & (0b01) | (0b01))
+                        });
+
 
                         // alternate function mode
                         let mode = 0b10;
-                        moder.moder().modify(|r, w| unsafe {
-                            w.bits((r.bits() & !(0b11 << offset)) | (mode << offset))
-                        });
 
                         let af = 7;
                         let offset = 4 * ($i % 8);
@@ -311,6 +322,13 @@ macro_rules! gpio {
                         afr.afr().modify(|r, w| unsafe {
                             w.bits((r.bits() & !(0b1111 << offset)) | (af << offset))
                         });
+
+                        let offset = 2 * $i;
+
+moder.moder().modify(|r, w| unsafe {
+                            w.bits((r.bits() & !(0b11 << offset)) | (mode << offset))
+                        });
+
 
                         $PXi { _mode: PhantomData }
                     }

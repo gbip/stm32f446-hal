@@ -13,42 +13,58 @@ pub trait DmaChannel {
 /// DMA channel
 pub struct C0;
 impl DmaChannel for C0 {
-    fn channel() -> u8 { 0 }
+    fn channel() -> u8 {
+        0
+    }
 }
 /// DMA channel
 pub struct C1;
 impl DmaChannel for C1 {
-    fn channel() -> u8 { 1 }
+    fn channel() -> u8 {
+        1
+    }
 }
 /// DMA channel
 pub struct C2;
 impl DmaChannel for C2 {
-    fn channel() -> u8 { 2 }
+    fn channel() -> u8 {
+        2
+    }
 }
 /// DMA channel
 pub struct C3;
 impl DmaChannel for C3 {
-    fn channel() -> u8 { 3 }
+    fn channel() -> u8 {
+        3
+    }
 }
 /// DMA channel
 pub struct C4;
 impl DmaChannel for C4 {
-    fn channel() -> u8 { 4 }
+    fn channel() -> u8 {
+        4
+    }
 }
 /// DMA channel
 pub struct C5;
 impl DmaChannel for C5 {
-    fn channel() -> u8 { 5 }
+    fn channel() -> u8 {
+        5
+    }
 }
 /// DMA channel
 pub struct C6;
 impl DmaChannel for C6 {
-    fn channel() -> u8 { 6 }
+    fn channel() -> u8 {
+        6
+    }
 }
 /// DMA channel
 pub struct C7;
 impl DmaChannel for C7 {
-    fn channel() -> u8 { 7 }
+    fn channel() -> u8 {
+        7
+    }
 }
 
 /// Split the DMA device into separate streams.
@@ -78,10 +94,8 @@ impl Not for DoubleBuffer {
     type Output = Self;
     fn not(self) -> Self::Output {
         match self {
-            DoubleBuffer::Memory0 =>
-                DoubleBuffer::Memory1,
-            DoubleBuffer::Memory1 =>
-                DoubleBuffer::Memory0,
+            DoubleBuffer::Memory0 => DoubleBuffer::Memory1,
+            DoubleBuffer::Memory1 => DoubleBuffer::Memory0,
         }
     }
 }
@@ -104,7 +118,12 @@ pub trait DmaStream {
 /// DMA stream that can start DMA transfer `X`
 pub trait DmaStreamTransfer<S, X: Transfer<Self>>: DmaStream + Sized {
     /// Start DMA transfer
-    fn start_transfer<'s, T, CHANNEL: DmaChannel>(self, source0: &'s [S], source1: &'s [S], target: &mut T) -> X;
+    fn start_transfer<'s, T, CHANNEL: DmaChannel>(
+        self,
+        source0: &'s [S],
+        source1: &'s [S],
+        target: &mut T,
+    ) -> X;
 }
 
 /// DMA transfer
@@ -128,7 +147,6 @@ pub trait Transfer<STREAM>: Sized {
         }
     }
 }
-
 
 macro_rules! dma {
     ($($DMAX:ident: ($dmaX:ident, $dmaXen:ident, $dmaXrst:ident, {
@@ -237,7 +255,6 @@ macro_rules! dma {
                         fn reset(&mut self) {
                             // Disable Stream
                             self.cr().modify(|_, w| w.en().clear_bit());
-                            
                             // Clear status bits
                             self.ifcr().modify(|_, w| {
                                 w.$ctcif().set_bit()

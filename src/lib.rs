@@ -28,19 +28,21 @@ extern crate cast;
 extern crate cortex_m;
 extern crate embedded_hal as hal;
 extern crate nb;
+pub extern crate stm32f4;
 extern crate void;
-extern crate stm32f4;
 pub use stm32f4::stm32f446;
+pub use stm32f4::*;
 
 pub mod delay;
+
+//pub mod dma;
 pub mod flash;
 pub mod gpio;
-pub mod i2c;
+//pub mod i2c;
+//pub mod i2s;
 pub mod prelude;
 pub mod rcc;
 pub mod serial;
-pub mod spi;
+//pub mod spi;
 pub mod time;
 pub mod timer;
-pub mod i2s;
-pub mod dma;

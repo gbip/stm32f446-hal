@@ -4,12 +4,12 @@ use core::ptr;
 
 use hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use nb;
-use stm32f446::{SPI1, SPI2, SPI3/*, SPI4, SPI5, SPI6*/};
+use stm32f446::{SPI1, SPI2, SPI3 /*, SPI4, SPI5, SPI6*/};
 
 use gpio::gpioa::{PA5, PA6, PA7};
 use gpio::gpiob::{PB13, PB14, PB15, PB5};
-use gpio::gpioc::{PC2, PC10, PC11, PC12};
-use gpio::gpiod::{PD3};
+use gpio::gpioc::{PC10, PC11, PC12, PC2};
+use gpio::gpiod::PD3;
 use gpio::{AF5, AF6};
 use rcc::{APB1, APB2, Clocks};
 use time::Hertz;
@@ -23,7 +23,8 @@ pub enum Error {
     ModeFault,
     /// CRC error
     Crc,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits

@@ -35,8 +35,7 @@ version = "0.2.1"
 version = "0.1.1"
 
 [dependencies.stm32f4]
-version = "0.2.0"
-#path = "/home/paul/repos/robot/stm32-rs/stm32f4"
+version = "0.2.2"
 features = ["stm32f446"]
 
 [dependencies.void]

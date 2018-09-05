@@ -3,7 +3,7 @@
 use core::cmp;
 
 use cast::u32;
-use stm32f446::{rcc, RCC};
+use stm32f446::{rcc, PWR, RCC};
 
 use flash::ACR;
 use time::Hertz;
@@ -68,16 +68,26 @@ impl AHB1 {
     /// Enable all the gpio blocks by setting ahb1.gpioXen bit to 1.
     /// Currently enabling only certain gpio bloc is not supported.
     pub fn enable_all_gpio(&mut self) {
-        self.enr().modify(|_, w| w.
-                          gpioaen().set_bit().
-                          gpioben().set_bit().
-                          gpioben().set_bit().
-                          gpiocen().set_bit().
-                          gpioden().set_bit().
-                          gpioeen().set_bit().
-                          gpiofen().set_bit().
-                          gpiogen().set_bit().
-                          gpiohen().set_bit());
+        self.enr().modify(|_, w| {
+            w.gpioaen()
+                .set_bit()
+                .gpioben()
+                .set_bit()
+                .gpioben()
+                .set_bit()
+                .gpiocen()
+                .set_bit()
+                .gpioden()
+                .set_bit()
+                .gpioeen()
+                .set_bit()
+                .gpiofen()
+                .set_bit()
+                .gpiogen()
+                .set_bit()
+                .gpiohen()
+                .set_bit()
+        });
     }
 }
 
@@ -132,6 +142,11 @@ impl APB1 {
         // NOTE(unsafe) this proxy grants exclusive access to this register
         unsafe { &(*RCC::ptr()).apb1rstr }
     }
+
+    /// Clock the USART3 peripheral
+    pub fn enable_usart3(&mut self) {
+        self.enr().modify(|_, w| w.usart3en().set_bit());
+    }
 }
 
 /// Advanced Peripheral Bus 2 (APB2) registers
@@ -173,7 +188,6 @@ impl CFGR {
         self
     }
 
-
     /// Sets a frequency for the APB1 bus
     pub fn pclk1<F>(mut self, freq: F) -> Self
     where
@@ -181,6 +195,85 @@ impl CFGR {
     {
         self.pclk1 = Some(freq.into().0);
         self
+    }
+
+    /// Set the maximum speed on all clocks.
+    pub fn max_speed(self, acr: &mut ACR, pwr: &mut PWR) -> Clocks {
+        let rcc = unsafe { &*RCC::ptr() };
+
+        // Configure PLL
+        rcc.pllcfgr.modify(|_, w| unsafe {
+            let val = rcc.pllcfgr.read().bits() | 0b01000000;
+            w.bits(val);
+
+            w.pllm()
+                .bits(0b0001000)
+                .plln()
+                .bits(180)
+                .pllp()
+                .bits(0b00)
+                .pllsrc()
+                .hsi()
+                .pllq()
+                .bits(0b0010)
+        });
+
+        // Switch to overdrive mode and select SCALE_3 voltage output
+        pwr.cr
+            .write(|w| unsafe { w.odswen().set_bit().vos().bits(0b11) });
+        // Wait for the switch
+        while pwr.csr.read().odswrdy().bit_is_set() {}
+
+        // Enable overdrive mode
+        pwr.cr.write(|w| w.oden().set_bit());
+        // Wait for activation
+        while pwr.csr.read().odrdy().bit_is_set() {}
+
+        rcc.cfgr.modify(|_, w| unsafe {
+            // Enable PLL
+            w
+                // APB high-speed prescaler (APB2)
+                .ppre2()
+                .bits(0b100)
+                // APB Low speed prescaler (APB1)
+                .ppre1()
+                .bits(0b101)
+                // AHB prescaler
+                .hpre()
+                .bits(0b0000)
+        });
+
+        // Enable PLL
+        rcc.cr.write(|w| w.pllon().set_bit());
+        // Wait for PLL ready
+        while rcc.cr.read().pllrdy().bit_is_clear() {}
+
+        // Configure the wait states
+        acr.acr().write(|w| unsafe { w.latency().bits(5) });
+
+        while acr.acr().read().latency().bits() != 5 {}
+        /*
+        let reg: *mut u8 = 0x40023808 as *mut _;
+
+        unsafe {
+            let val = *reg | 0b10;
+            *reg = val;
+        }*/
+
+        rcc.cfgr.modify(|_, w| unsafe {
+            w.sw().bits(0b10) // Select PLL as system clock
+        });
+
+        while !rcc.cfgr.read().sw().is_pll() {}
+
+        Clocks {
+            hclk: Hertz(180_000_000),
+            pclk1: Hertz(45_000_000),
+            pclk2: Hertz(90_000_000),
+            ppre1: 0b101,
+            ppre2: 0b100,
+            sysclk: Hertz(180_000_000),
+        }
     }
 
     /// Sets a frequency for the APB2 bus
@@ -213,13 +306,14 @@ impl CFGR {
 
         let sysclk = pllmul * HSI / 2;
 
-        assert!(sysclk <= 72_000_000);
+        assert!(sysclk <= 180_000_000);
 
         // Prescaler factor
-        let hpre_bits = self.hclk
+        let hpre_bits = self
+            .hclk
             .map(|hclk| match sysclk / hclk {
                 0 => unreachable!(),
-                1 => 0b0111,  // sysclk not divided
+                1 => 0b0111, // sysclk not divided
                 2 => 0b1000,
                 3...5 => 0b1001,
                 6...11 => 0b1010,
@@ -229,13 +323,14 @@ impl CFGR {
                 192...383 => 0b1110,
                 _ => 0b1111,
             })
-            .unwrap_or(0b0111);  // sysclk not divided
+            .unwrap_or(0b0111); // sysclk not divided
 
         let hclk = sysclk / (1 << (hpre_bits - 0b0111));
 
-        assert!(hclk <= 72_000_000);
+        assert!(hclk <= 180_000_000);
 
-        let ppre1_bits = self.pclk1
+        let ppre1_bits = self
+            .pclk1
             .map(|pclk1| match hclk / pclk1 {
                 0 => unreachable!(),
                 1 => 0b011,
@@ -252,7 +347,8 @@ impl CFGR {
         // Must not exceed 45 MHz!
         assert!(pclk1 <= 45_000_000);
 
-        let ppre2_bits = self.pclk2
+        let ppre2_bits = self
+            .pclk2
             .map(|pclk2| match hclk / pclk2 {
                 0 => unreachable!(),
                 1 => 0b011,
@@ -283,7 +379,8 @@ impl CFGR {
         let rcc = unsafe { &*RCC::ptr() };
         if let Some(pllmul_bits) = pllmul_bits {
             // use PLL as source
-            rcc.cfgr.modify(|_, w| unsafe {w.hpre().bits(pllmul_bits)});
+            rcc.cfgr
+                .modify(|_, w| unsafe { w.hpre().bits(pllmul_bits) });
 
             // Enable PLL
             rcc.cr.write(|w| w.pllon().set_bit());
@@ -344,7 +441,8 @@ pub struct Clocks {
     pclk2: Hertz,
     ppre1: u8,
     // TODO remove `allow`
-    #[allow(dead_code)] ppre2: u8,
+    #[allow(dead_code)]
+    ppre2: u8,
     sysclk: Hertz,
 }
 

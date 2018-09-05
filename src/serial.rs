@@ -1,16 +1,16 @@
 //! Serial
 
-use core::ptr;
 use core::marker::PhantomData;
+use core::ptr;
 
 use hal::serial;
 use nb;
-use stm32f446::{USART1, USART2, USART3, UART4, UART5, USART6};
+use stm32f446::{UART4, UART5, USART1, USART2, USART3, USART6};
 
 use gpio::gpioa::{PA0, PA1, PA10, PA2, PA3, PA9};
 use gpio::gpiob::{PB10, PB6, PB7};
 use gpio::gpioc::{PC10, PC11, PC12, PC5, PC6, PC7};
-use gpio::gpiod::{PD2};
+use gpio::gpiod::PD2;
 use gpio::AF7;
 use rcc::{APB1, APB2, Clocks};
 use time::Bps;
@@ -34,7 +34,8 @@ pub enum Error {
     Overrun,
     /// Parity check error
     Parity,
-    #[doc(hidden)] _Extensible,
+    #[doc(hidden)]
+    _Extensible,
 }
 
 // FIXME these should be "closed" traits
@@ -44,33 +45,33 @@ pub unsafe trait TxPin<USART> {}
 /// RX pin - DO NOT IMPLEMENT THIS TRAIT
 pub unsafe trait RxPin<USART> {}
 
-unsafe impl TxPin<USART1> for PA9<AF7> {} 
-unsafe impl TxPin<USART1> for PB6<AF7> {} 
+unsafe impl TxPin<USART1> for PA9<AF7> {}
+unsafe impl TxPin<USART1> for PB6<AF7> {}
 
-unsafe impl RxPin<USART1> for PA10<AF7> {} 
-unsafe impl RxPin<USART1> for PB7<AF7> {} 
+unsafe impl RxPin<USART1> for PA10<AF7> {}
+unsafe impl RxPin<USART1> for PB7<AF7> {}
 
-unsafe impl TxPin<USART2> for PA2<AF7> {} 
+unsafe impl TxPin<USART2> for PA2<AF7> {}
 
-unsafe impl RxPin<USART2> for PA3<AF7> {} 
+unsafe impl RxPin<USART2> for PA3<AF7> {}
 
-unsafe impl TxPin<USART3> for PB10<AF7> {} 
-unsafe impl TxPin<USART3> for PC10<AF7> {} 
+unsafe impl TxPin<USART3> for PB10<AF7> {}
+unsafe impl TxPin<USART3> for PC10<AF7> {}
 
-unsafe impl RxPin<USART3> for PC5<AF7> {} 
-unsafe impl RxPin<USART3> for PC11<AF7> {} 
+unsafe impl RxPin<USART3> for PC5<AF7> {}
+unsafe impl RxPin<USART3> for PC11<AF7> {}
 
-unsafe impl TxPin<UART4> for PA0<AF7> {} 
+unsafe impl TxPin<UART4> for PA0<AF7> {}
 
-unsafe impl RxPin<UART4> for PA1<AF7> {} 
+unsafe impl RxPin<UART4> for PA1<AF7> {}
 
-unsafe impl TxPin<UART5> for PC12<AF7> {} 
+unsafe impl TxPin<UART5> for PC12<AF7> {}
 
-unsafe impl RxPin<UART5> for PD2<AF7> {} 
+unsafe impl RxPin<UART5> for PD2<AF7> {}
 
-unsafe impl TxPin<USART6> for PC6<AF7> {} 
+unsafe impl TxPin<USART6> for PC6<AF7> {}
 
-unsafe impl RxPin<USART6> for PC7<AF7> {} 
+unsafe impl RxPin<USART6> for PC7<AF7> {}
 
 /// Serial abstraction
 pub struct Serial<USART, PINS> {
@@ -107,6 +108,7 @@ macro_rules! hal {
                     RX: RxPin<$USARTX>,
                 {
                     // enable or reset $USARTX
+
                     apb.enr().modify(|_, w| w.$usartXen().enabled());
                     apb.rstr().modify(|_, w| w.$usartXrst().set_bit());
                     apb.rstr().modify(|_, w| w.$usartXrst().clear_bit());
@@ -114,21 +116,24 @@ macro_rules! hal {
                     // disable hardware flow control
                     // TODO enable DMA
                     usart.cr3.write(|w| w.rtse().clear_bit().ctse().clear_bit());
-                    
+
                     // Set the M bit to program the baudrate
-                    let brr = clocks.$pclkX().0 / baud_rate.0;
-                    assert!(brr >= 16, "impossible baud rate");
-                    usart.brr.write(|w| unsafe { w.bits(brr) });
+                    let brr : f32 = clocks.$pclkX().0 as f32 / (baud_rate.0 as f32 * 16.0);
+                    let mantissa = brr as u16;
+                    let div : u8 = ((brr - mantissa as f32) * 16.0) as u8;
+                    usart.brr.write(|w|  w.div_mantissa().bits(mantissa).div_fraction().bits(div));
 
                     // Configure the number of stop bits
-                    usart.cr2.write(|w| unsafe {w.bits(0b00)});
+                    usart.cr2.write(|w|w.stop().stop1());
 
+                    //let a : *mut u8 = 0x40004804 as *mut _;
+                    //let k = unsafe {*a as *mut u8};
                     // UE: enable USART
                     // RE: enable receiver
                     // TE: enable transceiver
                     usart
                         .cr1
-                        .write(|w| w.ue().set_bit().re().set_bit().te().set_bit());
+                        .write(|w| w.te().set_bit().re().set_bit().ue().set_bit());
 
                     Serial { usart, pins }
                 }
